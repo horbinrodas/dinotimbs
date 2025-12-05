@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dinotimbs</title>
+  <link rel="icon" type="image/png" href="Dinotimbs.png">
+</head>
+<body>
+  <div class="scroller">
+    <div class="scroller-content">
+      <img src="Dinotimbs.png" alt="Dinotimbs">
+      <img src="Dinotimbs.png" alt="Dinotimbs">
+      <img src="Dinotimbs.png" alt="Dinotimbs">
+      <img src="Dinotimbs.png" alt="Dinotimbs">
+      <img src="Dinotimbs.png" alt="Dinotimbs">
+      <img src="Dinotimbs.png" alt="Dinotimbs">
+      <img src="Dinotimbs.png" alt="Dinotimbs">
+      <img src="Dinotimbs.png" alt="Dinotimbs">
+      <img src="Dinotimbs.png" alt="Dinotimbs">
+      <img src="Dinotimbs.png" alt="Dinotimbs">
+      <img src="Dinotimbs.png" alt="Dinotimbs">
+      <img src="Dinotimbs.png" alt="Dinotimbs">
+      <img src="Dinotimbs.png" alt="Dinotimbs">
+      <img src="Dinotimbs.png" alt="Dinotimbs">
+      <img src="Dinotimbs.png" alt="Dinotimbs">
+    </div>
+  </div>
+
+  <style>
+    body {
+      background-color: black;
+      background-size: contain;
+      background-position: center;
+      background-attachment: fixed;
+      margin: 0;
+      padding: 0;
+    }
+    .scroller {
+      overflow: hidden;
+      position: relative;
+    }
+    .scroller-content {
+      display: flex;
+    }   
+    .scroller-content img {
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+    @media (min-width: 601px) {
+      .scroller {
+        height: 100vh;
+        width: 100vw;
+      }
+      .scroller-content {
+        flex-direction: row;
+        animation: scroll 100s linear infinite;
+        animation-direction: alternate-reverse;
+      }
+      .scroller-content img {
+        height: 100vh;
+      }
+      @keyframes scroll {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(-500%);
+        }
+      }
+    }
+
+    @media (max-width: 600px) {
+      .scroller {
+        width: 100vw;
+        height: 100vh;
+      }
+      .scroller-content {
+        flex-direction: column;
+        animation: scroll 10s linear infinite;
+        animation-direction: alternate-reverse;
+      }
+      .scroller-content img {
+        width: 100vw;
+      }
+      @keyframes scroll {
+        0% {
+          transform: translateY(0);
+        }
+        100% {
+          transform: translateY(-25%);
+        }
+      }
+    }
+  </style>
+</body>
+</html>
