@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Larpdle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=BBH+Sans+Bartle&family=Doto:wght@700;900&family=Genos:wght@500;700&family=Inter:wght@500;700&family=Michroma&display=swap" rel="stylesheet">
+<style>
+  @font-face { font-family: DSEG7; src: url(https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff2) format('woff2'); }
+  :root { --ink: #1f2719; --lcd: #a3ae8f; --yellow: #edd565; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: #1c1c1e; display: flex; align-items: center; justify-content: center; font-family: Inter, sans-serif; overflow: hidden; }
+  body { background: #000; }
+  .bg { position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+  .bg-track { display: flex; flex-direction: row; animation: bg-scroll-x 300s linear infinite alternate-reverse; }
+  .bg-track img { height: 100vh; flex-shrink: 0; object-fit: cover; }
+  @keyframes bg-scroll-x { from { transform: translateX(0); } to { transform: translateX(-500%); } }
+  @media (max-width: 600px) {
+    .bg-track { flex-direction: column; animation: bg-scroll-y 30s linear infinite alternate-reverse; }
+    .bg-track img { width: 100vw; height: auto; }
+    @keyframes bg-scroll-y { from { transform: translateY(0); } to { transform: translateY(-25%); } }
+  }
+  @media (prefers-reduced-motion: reduce) { .bg-track { animation: none; } }
+  #fit, #lcdDock { z-index: 1; }
+  body.mobile { flex-direction: column; justify-content: flex-start; overflow-x: hidden; overflow-y: auto; }
+  #lcdDock { display: none; }
+  body.mobile #lcdDock { display: block; position: relative; width: 100%; padding: 12px 8px 24px; }
+  #lcdFrame { position: relative; margin: 0 auto; padding: 10px; border-radius: 12px; background: #0f1317; }
+  #lcdFrame .lcd { position: relative; left: 0 !important; top: 0 !important; }
+  #fit { position: relative; overflow-x: clip; overflow-y: visible; }
+  body:not(.mobile) #fit { overflow: visible; }
+  @keyframes hover { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+  #fit { animation: hover 18s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce) { #fit { animation: none; } }
+  #stage { position: absolute; top: 0; left: 0; width: 960px; height: 860px; transform-origin: top left; }
+  .abs { position: absolute; }
+  button { font: inherit; }
+  .plain { background: none; border: none; padding: 0; color: #fff; cursor: pointer; }
+  .round-btn { width: 46px; height: 46px; border-radius: 50%; border: none; padding: 0; background: #0b0b0c; cursor: pointer; }
+  .pod-btn { border: none; padding: 0; cursor: pointer; background: #333336; }
+  .round-btn:active, .pod-btn:active, .plain:active { filter: brightness(1.4); }
+  .round-btn:focus-visible, .plain:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
+  .pod-btn:focus-visible { outline: 3px solid var(--yellow); outline-offset: -6px; }
+  .seg { fill: transparent; cursor: pointer; pointer-events: all; outline: none; }
+  .seg:hover { fill: rgba(255, 255, 255, 0.07); }
+  .seg:focus-visible { fill: rgba(237, 213, 101, 0.18); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .disc-spin, .lcd-disc { animation: spin 1.4s linear infinite paused; }
+  .lcd-disc { animation-duration: 2.2s; }
+  body.spinning .disc-spin, body.spinning .lcd-disc { animation-play-state: running; }
+  .lcd { color: var(--ink); }
+  .dot { font-family: Doto, 'DotGothic16', monospace; font-weight: 900; text-transform: uppercase; white-space: nowrap; line-height: 1; -webkit-text-stroke: 0.4px currentColor; }
+  .dotgrid { background-image: radial-gradient(circle, rgba(31, 39, 25, 0.1) 1px, transparent 1.3px); background-size: 5px 5px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .seg7 { font-family: DSEG7, monospace; line-height: 1; }
+  .cell { flex: 1; background: var(--ink); }
+  .cell.empty { background: rgba(31, 39, 25, 0.1); }
+  .ghost { position: absolute; right: 0; top: 0; color: rgba(31, 39, 25, 0.08); }
+  .tiny { font-family: Inter, sans-serif; font-weight: 700; letter-spacing: 0.08em; }
+  .guess { width: 100%; background: transparent; border: none; outline: none; padding: 0; color: var(--ink); caret-color: var(--ink); font-size: 25px; }
+  .guess::placeholder { color: var(--ink); opacity: 0.55; }
+  .reveal { position: absolute; left: 0; top: 0; }
+  .reveal.scroll { animation: marquee 5s ease-in-out infinite alternate; }
+  @keyframes marquee { 0%, 15% { transform: translateX(0); } 85%, 100% { transform: translateX(var(--shift)); } }
+
+  #helpBtn { position: fixed; top: 14px; right: 14px; z-index: 2; width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--yellow); background: #111214; color: var(--yellow); font-family: Michroma, sans-serif; font-size: 18px; cursor: pointer; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6); }
+  #helpBtn:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+  #help { width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 0; border: none; border-radius: 14px; background: #f1ede4; color: var(--ink); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7); font-family: Inter, sans-serif; overflow: auto; }
+  #help::backdrop { background: rgba(0, 0, 0, 0.65); }
+  #help form { padding: 24px; display: flex; flex-direction: column; gap: 18px; }
+  #help .kicker { font-family: Michroma, sans-serif; font-size: 10px; letter-spacing: 0.15em; color: #6e1712; }
+  #help h2 { margin: 6px 0 0; font-family: Genos, sans-serif; font-weight: 700; font-size: 42px; line-height: 1; }
+  #help h3 { margin: 0 0 10px; font-family: Michroma, sans-serif; font-size: 12px; letter-spacing: 0.15em; }
+  #help .steps { margin: 0; padding-left: 22px; display: grid; gap: 8px; font-size: 15px; line-height: 1.45; }
+  #help .keys { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 9px 14px; align-items: center; font-size: 14px; }
+  #help dt { display: flex; gap: 6px; align-items: center; font-weight: 700; white-space: nowrap; }
+  #help dd { margin: 0; line-height: 1.35; }
+  .chip { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 26px; padding: 0 9px; border-radius: 13px; background: #000; color: #d6d0c8; font-size: 12px; font-weight: 500; letter-spacing: 0.04em; }
+  .chip.pod { background: #333336; color: var(--yellow); border-radius: 6px; }
+  .chip.dot-btn { min-width: 22px; width: 22px; height: 22px; padding: 0; border-radius: 50%; background: #0b0b0c; }
+  .chip.lcd-chip { background: var(--lcd); color: var(--ink); border-radius: 4px; font-weight: 700; }
+  .levels { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .level { position: relative; display: block; cursor: pointer; }
+  .level input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+  .level span { display: flex; flex-direction: column; gap: 4px; min-height: 44px; padding: 14px; border: 2px solid var(--ink); border-radius: 10px; background: #fff; }
+  .level b { font-family: Genos, sans-serif; font-size: 26px; line-height: 1; }
+  .level small { font-size: 13px; color: #4a4740; line-height: 1.3; }
+  .level input:checked + span { background: var(--lcd); box-shadow: inset 0 0 0 2px var(--ink); }
+  .level input:focus-visible + span { outline: 3px solid #6e1712; outline-offset: 2px; }
+  .go { height: 52px; border: none; border-radius: 26px; background: #000; color: var(--yellow); font-family: Michroma, sans-serif; font-size: 15px; letter-spacing: 0.12em; cursor: pointer; }
+  .go:focus-visible { outline: 3px solid #6e1712; outline-offset: 3px; }
+  @media (max-width: 480px) {
+    #help form { padding: 20px 18px; }
+    #help h2 { font-size: 34px; }
+    .levels { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"><div class="bg-track" id="bgTrack"></div></div>
+<div id="fit">
+<div id="stage">
+
+  <div class="abs" style="left: 44px; top: 29px; width: 893px; height: 825px; border-radius: 26px; background: linear-gradient(180deg, #b4b4b4 0%, #8f8f8f 100%); box-shadow: 0 50px 90px rgba(0, 0, 0, 0.8), 0 24px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.18), 0 0 70px rgba(255, 120, 40, 0.22)"></div>
+  <div class="abs" style="left: 44px; top: 17px; width: 893px; height: 825px; border-radius: 26px; background: #d9d9d9; box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.75), inset 2px 0 0 rgba(255, 255, 255, 0.35), inset 0 -3px 0 rgba(0, 0, 0, 0.12), inset -2px 0 0 rgba(0, 0, 0, 0.06)"></div>
+  <div class="abs" style="left: 77px; top: 20px; width: 820px; height: 820px; border-radius: 50%; background: #474747"></div>
+
+  <div class="abs" style="left: 187px; top: 112px; width: 62px; height: 62px; border-radius: 50%; background: #3a3a3a"><div class="abs" style="left: 18px; top: 18px; width: 26px; height: 26px; border-radius: 50%; background: #555"></div></div>
+  <div class="abs" style="left: 736px; top: 112px; width: 62px; height: 62px; border-radius: 50%; background: #3a3a3a"><div class="abs" style="left: 18px; top: 18px; width: 26px; height: 26px; border-radius: 50%; background: #555"></div></div>
+  <div class="abs" style="left: 736px; top: 683px; width: 62px; height: 62px; border-radius: 50%; background: #3a3a3a"><div class="abs" style="left: 18px; top: 18px; width: 26px; height: 26px; border-radius: 50%; background: #555"></div></div>
+  <div class="abs" style="left: 187px; top: 681px; width: 62px; height: 62px; border-radius: 50%; background: #3a3a3a"><div class="abs" style="left: 11px; top: 11px; width: 40px; height: 40px; border-radius: 50%; background: #5c1210"></div></div>
+
+  <svg class="abs" width="960" height="860" viewBox="0 0 960 860" aria-hidden="true" style="top: 0; left: 0; pointer-events: none">
+    <defs>
+      <path id="pTop" d="M 161.9 311.7 A 346 346 0 0 1 812.1 311.7"/>
+      <path id="pSampling" d="M 151.0 572.6 A 365 365 0 0 0 836.1 536.7"/>
+      <path id="pRec" d="M 114.0 430.0 A 373 373 0 0 0 422.2 797.3"/>
+    </defs>
+    <g font-family="Michroma, sans-serif" font-size="18" letter-spacing="1.5" text-anchor="middle">
+      <text fill="#fff"><textPath href="#pTop" startOffset="50%">MD PORTABLE RECORDER</textPath></text>
+      <text fill="#6e1712"><textPath href="#pSampling" startOffset="50%">SAMPLING RATE CONVERTER</textPath></text>
+      <text fill="#6e1712"><textPath href="#pRec" startOffset="16%">REC</textPath></text>
+    </g>
+  </svg>
+
+  <div class="abs" style="left: 770px; top: 250px; width: 148px; height: 342px; clip-path: path('M0 0 H96 C132 40 148 112 148 171 C148 230 132 302 96 342 H0 Z'); background: #111214"></div>
+  <button type="button" class="pod-btn abs" id="podPlay" aria-label="Play or pause the clip" style="left: 782px; top: 262px; width: 124px; height: 158px; clip-path: path('M0 0 H78 C106 32 121 92 124 158 H0 Z')">
+    <span class="abs" style="left: 49px; top: 47px; width: 28px; height: 24px; background: var(--yellow); clip-path: polygon(0 0, 100% 50%, 0 100%)"></span>
+    <span class="abs" style="left: 55px; top: 79px; width: 6px; height: 16px; background: var(--yellow)"></span>
+    <span class="abs" style="left: 65px; top: 79px; width: 6px; height: 16px; background: var(--yellow)"></span>
+  </button>
+  <button type="button" class="pod-btn abs" id="podStop" aria-label="Stop" style="left: 782px; top: 425px; width: 124px; height: 155px; clip-path: path('M0 0 H124 C121 64 106 124 78 155 H0 Z')">
+    <span class="abs" style="left: 51px; top: 82px; width: 24px; height: 24px; background: var(--yellow)"></span>
+  </button>
+
+  <div class="abs" style="left: 149px; top: 92px; width: 676px; height: 676px; border-radius: 50%; overflow: hidden">
+    <div class="disc-spin abs" style="top: 0; left: 0; width: 676px; height: 676px; border-radius: 50%; background: conic-gradient(from 200deg, #e9ecef 0%, #f8f9fb 7%, #c4cad3 14%, #e6e9ee 20%, #bfe3ea 25%, #f3e6c4 29%, #e9c9e0 33%, #c8d2ee 37%, #eef0f3 45%, #a7aeb9 53%, #f7f8fa 61%, #c0c7d1 69%, #f0e2c4 75%, #cde7d6 79%, #e3c9e6 83%, #c9d3ef 87%, #eef0f3 93%, #e9ecef 100%)"></div>
+  </div>
+
+  <span class="abs" style="left: 240px; top: 168px; width: 500px; text-align: center; font-family: 'BBH Sans Bartle', 'BBH Bartle', sans-serif; font-size: 33px; color: #fff">DINOTIMBS</span>
+
+  <svg class="abs" width="960" height="860" viewBox="0 0 960 860" style="top: 0; left: 0; pointer-events: none">
+    <defs>
+      <path id="pMark" d="M 652.0 641.2 A 268 268 0 0 0 723.6 304.2"/>
+      <path id="pPlay" d="M 515.0 696.5 A 268 268 0 0 0 754.3 448.7"/>
+      <path id="pFf" d="M 373.7 672.9 A 268 268 0 0 0 706.5 583.7"/>
+      <path id="pRw" d="M 264.8 579.9 A 268 268 0 0 0 596.0 674.8"/>
+      <path id="pTimeMark" d="M 664.3 688.0 A 313 313 0 0 0 771.8 300.2"/>
+      <path id="pSynchro" d="M 514.5 743.8 A 315 315 0 0 0 800.8 457.5"/>
+      <path id="pRecLevel" d="M 293.1 678.2 A 315 315 0 0 0 697.8 664.1"/>
+      <path id="pEdit" d="M 614.5 619.0 A 228 228 0 0 0 695.3 337.3"/>
+      <path id="pEnter" d="M 511.1 659.7 A 231 231 0 0 0 717.4 446.1"/>
+    </defs>
+    <path d="M 777.0 430.0 A 290 290 0 0 1 355.3 688.4 L 380.3 639.4 A 235 235 0 0 0 722.0 430.0 Z" fill="#000"/>
+    <path class="seg" data-act="submit" tabindex="0" role="button" aria-label="Mark: submit your guess" d="M 777.0 430.0 A 290 290 0 0 1 738.1 575.0 L 690.5 547.5 A 235 235 0 0 0 722.0 430.0 Z"/>
+    <path class="seg" data-act="play" tabindex="0" role="button" aria-label="Play the clip" d="M 738.1 575.0 A 290 290 0 0 1 636.4 678.6 L 608.0 631.4 A 235 235 0 0 0 690.5 547.5 Z"/>
+    <path class="seg" data-act="next" tabindex="0" role="button" aria-label="Next song" d="M 636.4 678.6 A 290 290 0 0 1 487.0 720.0 L 487.0 665.0 A 235 235 0 0 0 608.0 631.4 Z"/>
+    <path class="seg" data-act="replay" tabindex="0" role="button" aria-label="Replay the clip from the start" d="M 487.0 720.0 A 290 290 0 0 1 355.3 688.4 L 380.3 639.4 A 235 235 0 0 0 487.0 665.0 Z"/>
+    <g stroke="#4a4a4f" stroke-width="1.5" style="pointer-events: none">
+      <line x1="692.2" y1="548.5" x2="736.4" y2="574.0"/>
+      <line x1="609.1" y1="633.1" x2="635.3" y2="676.9"/>
+      <line x1="487" y1="667" x2="487" y2="718"/>
+    </g>
+    <g font-family="Inter, sans-serif" font-size="21" font-weight="500" fill="#a19b94" text-anchor="middle" letter-spacing="0.8" aria-hidden="true" style="pointer-events: none">
+      <text><textPath href="#pMark" startOffset="50%">MARK</textPath></text>
+      <text><textPath href="#pPlay" startOffset="50%">PLAY</textPath></text>
+      <text><textPath href="#pFf" startOffset="50%">&gt;&gt;|</textPath></text>
+      <text><textPath href="#pRw" startOffset="50%">|&lt;&lt;</textPath></text>
+    </g>
+    <g font-family="Inter, sans-serif" font-size="19" font-weight="500" fill="#7c776f" text-anchor="middle" letter-spacing="1" aria-hidden="true">
+      <text><textPath href="#pTimeMark" startOffset="50%">TIME MARK</textPath></text>
+      <text><textPath href="#pSynchro" startOffset="50%">SYNCHRO</textPath></text>
+      <text><textPath href="#pRecLevel" startOffset="50%">REC LEVEL</textPath></text>
+      <text><textPath href="#pEdit" startOffset="50%">EDIT</textPath></text>
+      <text><textPath href="#pEnter" startOffset="50%">ENTER</textPath></text>
+    </g>
+  </svg>
+
+  <div class="abs" style="left: 5px; top: 309px; width: 175px; height: 253px; border-radius: 3px; background: #111214"></div>
+  <div class="abs" style="left: 45px; top: 322px; width: 593px; height: 225px; border-radius: 6px 112px 112px 6px; background: #1e1f22">
+    <div class="abs" style="left: 0; top: 10px; width: 582px; height: 205px; border-radius: 4px 102px 102px 4px; background: #0f1317"></div>
+  </div>
+  <div class="abs" style="left: 80px; top: 430px; transform: translate(-50%, -50%) rotate(-90deg); font-family: Genos, sans-serif; font-weight: 700; font-size: 72px; line-height: 1; color: #fff">702</div>
+
+  <div class="abs lcd" style="left: 133px; top: 344px; width: 339px; height: 168px; border-radius: 4px; overflow: hidden; background: var(--lcd); transform-origin: top left">
+    <div class="abs dot" data-f="artist" style="left: 10px; top: 7px; width: 186px; overflow: hidden; font-size: 18px">--------</div>
+    <span class="abs tiny" data-f="streakLabel" style="right: 92px; top: 6px; font-size: 9px; line-height: 1"></span>
+    <div class="abs seg7" data-f="score" style="right: 60px; top: 7px; font-size: 16px"></div>
+    <div class="abs battery" role="img" aria-label="3 tries left" style="right: 14px; top: 7px; width: 38px; height: 17px; border: 2px solid var(--ink); border-radius: 2px; display: flex; gap: 2px; padding: 2px">
+      <span class="cell"></span><span class="cell"></span><span class="cell"></span>
+    </div>
+    <div class="abs" style="right: 10px; top: 12px; width: 4px; height: 7px; background: var(--ink)"></div>
+    <div class="abs" style="left: 0; top: 30px; width: 339px; height: 2px; background: var(--ink)"></div>
+
+    <div class="abs lcd-disc" style="left: 10px; top: 38px; width: 40px; height: 40px">
+      <svg width="40" height="40" viewBox="0 0 52 52" aria-hidden="true">
+        <circle cx="26" cy="26" r="23" fill="none" stroke="#1f2719" stroke-width="3"/>
+        <path d="M 26 26 L 26 6 A 20 20 0 0 1 43.3 16 Z" fill="#1f2719"/>
+        <path d="M 26 26 L 26 46 A 20 20 0 0 1 8.7 36 Z" fill="#1f2719"/>
+        <circle cx="26" cy="26" r="5" fill="#a3ae8f" stroke="#1f2719" stroke-width="2"/>
+      </svg>
+    </div>
+    <span class="abs tiny" style="left: 10px; top: 82px; font-size: 12px">TRACK</span>
+    <span class="abs tiny" data-f="level" style="left: 66px; top: 81px; font-size: 10px; padding: 2px 5px; border-radius: 2px; background: var(--ink); color: var(--lcd)"></span>
+    <div class="abs dot" data-f="status" style="left: 60px; top: 44px; font-size: 30px">HELLO</div>
+
+    <div class="abs seg7" style="right: 12px; top: 37px; font-size: 32px"><span class="ghost">88</span><span data-f="track">--</span></div>
+    <div class="abs seg7" style="right: 12px; top: 74px; font-size: 26px"><span class="ghost">8:88</span><span data-f="time">0:00</span></div>
+
+    <div class="abs dot" data-f="match" style="left: 10px; top: 104px; width: 319px; overflow: hidden; font-size: 15px">TYPE AN ARTIST</div>
+
+    <div class="abs" style="left: 0; top: 124px; width: 339px; height: 44px; border-top: 2px solid var(--ink); display: flex; align-items: center; padding: 0 10px; gap: 8px">
+      <span class="tiny" data-f="fieldLabel" aria-hidden="true" style="font-size: 10px; flex: none; writing-mode: vertical-rl; transform: rotate(180deg); line-height: 1">ARTIST</span>
+      <div class="dotgrid" style="position: relative; flex: 1; height: 30px; overflow: hidden">
+        <input class="guess dot" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="-- ???? --" aria-label="Artist" style="position: absolute; left: 0; top: 2px">
+        <span class="reveal dot" hidden style="top: 3px; font-size: 25px"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="abs" style="left: 537px; top: 344px; width: 86px; height: 172px; border-radius: 0 86px 86px 0; background: #000"></div>
+  <div class="abs" style="left: 518px; top: 409px; width: 42px; height: 42px; border-radius: 50%; background: #111214"></div>
+  <button type="button" class="plain abs" id="volUp" aria-label="Previous match" style="left: 507px; top: 341px; width: 38px; height: 40px; font-size: 32px; font-weight: 500; line-height: 1">+</button>
+  <button type="button" class="plain abs" id="volDown" aria-label="Next match" style="left: 507px; top: 459px; width: 38px; height: 40px; font-size: 32px; font-weight: 500; line-height: 1">-</button>
+  <span class="abs" style="left: 486px; top: 400px; font-size: 22px; font-weight: 500; line-height: 26px; color: #fff">VOL/<br>NAME</span>
+
+  <button type="button" class="round-btn abs" id="btnCharacter" aria-label="Character: pick a new artist" style="left: 700px; top: 287px"></button>
+  <button type="button" class="round-btn abs" id="btnDisplay" aria-label="Display: give up and reveal the song" style="left: 722px; top: 357px"></button>
+  <span class="abs" style="left: 497px; top: 282px; width: 200px; text-align: right; font-family: Genos, sans-serif; font-weight: 700; font-size: 30px; line-height: 30px; color: #fff; pointer-events: none">CHARACTER</span>
+  <span class="abs" style="left: 520px; top: 351px; width: 200px; text-align: right; font-family: Genos, sans-serif; font-weight: 700; font-size: 30px; line-height: 30px; color: #fff; pointer-events: none">Display</span>
+</div>
+</div>
+<div id="lcdDock"><div id="lcdFrame"></div></div>
+<div id="sr" class="sr-only" aria-live="polite"></div>
+
+<button type="button" id="helpBtn" aria-label="How to play and difficulty">?</button>
+<dialog id="help" aria-labelledby="helpTitle">
+  <form method="dialog">
+    <header>
+      <span class="kicker">DINOTIMBS · LARPDLE</span>
+      <h2 id="helpTitle" tabindex="-1" autofocus style="outline: none">How to play</h2>
+    </header>
+    <ol class="steps">
+      <li>Type an artist on the screen, pick the right one with <b>VOL + / −</b>, then press <b>MARK</b> (or Enter).</li>
+      <li>A 10-second clip starts playing.</li>
+      <li>Type the song title, step through the matches with <b>VOL + / −</b> and lock it in with <b>MARK</b>. (or Enter)</li>
+      <li>Get it right and your <b>streak</b> goes up. Get it wrong, skip or give up and you lose a <b>battery bar</b>. Three strikes and it's game over.</li>
+    </ol>
+    <section>
+      <h3>Buttons</h3>
+      <dl class="keys">
+        <dt><span class="chip">MARK</span></dt><dd>Pick the artist, lock in your guess, retry after game over</dd>
+        <dt><span class="chip">PLAY</span><span class="chip pod">▶ II</span></dt><dd>Play / pause the clip</dd>
+        <dt><span class="chip">|&lt;&lt;</span></dt><dd>Replay the clip from the start</dd>
+        <dt><span class="chip">&gt;&gt;|</span></dt><dd>Next song (skipping costs a battery bar)</dd>
+        <dt><span class="chip pod">■</span></dt><dd>Stop</dd>
+        <dt><span class="chip">VOL + / −</span></dt><dd>Step through the matches (or ↑ ↓ keys)</dd>
+        <dt><span class="chip dot-btn"></span>Display</dt><dd>Give up and reveal the song</dd>
+        <dt><span class="chip dot-btn"></span>Character</dt><dd>Pick a different artist</dd>
+        <dt><span class="chip lcd-chip">▮▮▮</span></dt><dd>Battery = tries left. STREAK = songs you've got right this run.</dd>
+      </dl>
+    </section>
+    <section>
+      <h3 id="levelTitle">Difficulty</h3>
+      <div class="levels" role="radiogroup" aria-labelledby="levelTitle">
+        <label class="level"><input type="radio" name="level" value="larper"><span><b>Larper</b><small></small></span></label>
+        <label class="level"><input type="radio" name="level" value="not-larper"><span><b>Not larper</b><small></small></span></label>
+      </div>
+    </section>
+    <button class="go" value="go">LET'S GO</button>
+  </form>
+</dialog>
+
+<script>
+const $ = id => document.getElementById(id);
+for (let i = 0; i < 15; i++) {
+  const img = new Image();
+  img.src = 'https://dinotimbs.com/Dinotimbs.png';
+  img.alt = '';
+  $('bgTrack').appendChild(img);
+}
+const audio = new Audio();
+const CLIP = 10, LIVES = 3;
+let mode = 'artist', artist = null, gameId = null, current = null, answered = false, over = false, busy = false;
+let track = 0, streak = 0, lives = LIVES, options = [], sel = 0, typeTimer;
+
+const lcdText = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
+const api = async (path, init) => {
+  const res = await fetch(path, init);
+  const d = await res.json();
+  if (d.error) throw Object.assign(new Error(d.error), { status: res.status });
+  return d;
+};
+const post = (path, data) => api(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+const LEVELS = { larper: 'LARPER', 'not-larper': 'NOT LARPER' };
+let level = 'not-larper';
+try { if (LEVELS[localStorage.getItem('level')]) level = localStorage.getItem('level'); } catch {}
+const params = extra => new URLSearchParams({ id: artist.id, name: artist.name, level, ...extra });
+
+const playerLcd = document.querySelector('#stage .lcd');
+const dockLcd = playerLcd.cloneNode(true);
+$('lcdFrame').appendChild(dockLcd);
+const all = sel => document.querySelectorAll(sel);
+const setText = (field, text) => all(`[data-f="${field}"]`).forEach(el => { el.textContent = text; });
+const inputs = all('.guess');
+const typed = () => inputs[0].value;
+
+let fittedWidth = 0, mobile = false;
+function fit() {
+  const w = document.documentElement.clientWidth, h = innerHeight;
+  mobile = w <= 820;
+  if (mobile && w === fittedWidth) return;
+  fittedWidth = w;
+  document.body.classList.toggle('mobile', mobile);
+  const s = mobile ? w / 960 : Math.min(w / 960, h / 860) * 0.9;
+  $('stage').style.transform = `scale(${s})`;
+  $('fit').style.width = 960 * s + 'px';
+  $('fit').style.height = 860 * s + 'px';
+  if (mobile) {
+    const k = (w - 16 - 20) / 339;
+    $('lcdFrame').style.width = 339 * k + 20 + 'px';
+    $('lcdFrame').style.height = 168 * k + 20 + 'px';
+    dockLcd.style.transform = `scale(${k})`;
+  }
+  playerLcd.setAttribute('aria-hidden', mobile);
+}
+addEventListener('resize', fit);
+fit();
+const mainInput = () => (mobile ? dockLcd : playerLcd).querySelector('.guess');
+
+function status(text) { setText('status', text); }
+function hint(text) { setText('match', text); $('sr').textContent = text; }
+function renderTop() {
+  const playing = mode === 'game';
+  setText('artist', artist ? lcdText(artist.name) : '--------');
+  setText('streakLabel', playing ? 'STREAK' : '');
+  setText('score', playing ? String(streak).padStart(2, '0') : '');
+  setText('track', playing ? String(track % 100).padStart(2, '0') : '--');
+  const left = playing ? lives : LIVES;
+  all('.battery').forEach(b => {
+    b.querySelectorAll('.cell').forEach((cell, i) => cell.classList.toggle('empty', i >= left));
+    b.setAttribute('aria-label', `${left} ${left === 1 ? 'try' : 'tries'} left`);
+  });
+}
+function renderTime() {
+  const t = Math.min(Math.floor(audio.currentTime || 0), answered ? 30 : CLIP);
+  setText('time', `0:${String(t).padStart(2, '0')}`);
+}
+function renderMatch() {
+  if (options.length) return hint(`${sel + 1}/${options.length} ${lcdText(options[sel].name)}`);
+  if (mode === 'artist') return hint(typed().trim() ? 'NO MATCH' : 'TYPE AN ARTIST');
+  if (over) return hint('MARK TO RETRY');
+  if (answered) return hint('>>| FOR NEXT SONG');
+  hint(typed().trim() ? 'NO MATCH' : 'TYPE YOUR GUESS');
+}
+function setField({ label, value = '', locked = false, placeholder = '-- ???? --' }) {
+  setText('fieldLabel', label);
+  inputs.forEach(input => {
+    input.placeholder = placeholder;
+    input.setAttribute('aria-label', label === 'ARTIST' ? 'Artist' : 'Song title');
+    input.value = locked ? '' : value;
+    input.hidden = locked;
+  });
+  all('.reveal').forEach(reveal => {
+    reveal.hidden = !locked;
+    reveal.classList.remove('scroll');
+    if (!locked) return;
+    reveal.textContent = lcdText(value);
+    const overflow = reveal.scrollWidth - reveal.parentElement.clientWidth;
+    if (overflow > 0) { reveal.style.setProperty('--shift', `-${overflow + 4}px`); reveal.classList.add('scroll'); }
+  });
+  if (!locked) mainInput().focus();
+}
+
+inputs.forEach(input => {
+  input.addEventListener('input', () => {
+    inputs.forEach(other => { if (other !== input) other.value = input.value; });
+    clearTimeout(typeTimer);
+    const q = input.value.trim();
+    if (!q) { options = []; return renderMatch(); }
+    typeTimer = setTimeout(async () => {
+      try {
+        options = mode === 'artist'
+          ? await api('api/artists?q=' + encodeURIComponent(q))
+          : (await api('api/songs?' + params({ q }))).map(name => ({ name }));
+      } catch { options = []; }
+      sel = 0;
+      renderMatch();
+    }, 250);
+  });
+  input.addEventListener('keydown', e => {
+    if (e.key === 'ArrowUp') { e.preventDefault(); cycle(-1); }
+    if (e.key === 'ArrowDown') { e.preventDefault(); cycle(1); }
+    if (e.key === 'Enter') { e.preventDefault(); submit(); }
+  });
+});
+function cycle(step) {
+  if (!options.length) return;
+  sel = (sel + step + options.length) % options.length;
+  renderMatch();
+}
+$('volUp').onclick = () => cycle(-1);
+$('volDown').onclick = () => cycle(1);
+
+function submit() {
+  if (mode === 'artist') {
+    if (!options.length) return status('PICK');
+    return pickArtist(options[sel]);
+  }
+  if (over) return pickArtist(artist);
+  if (answered) return nextRound();
+  if (!current) return;
+  if (!options.length) { status('PICK'); return hint('PICK FROM THE MATCHES'); }
+  guess(options[sel].name);
+}
+
+function applyState(r) {
+  ({ streak, lives, track } = r);
+  over = r.over;
+  renderTop();
+}
+
+function showError(e) {
+  status('ERR');
+  if (e.status === 404) { over = true; return hint('GAME EXPIRED - MARK TO RESTART'); }
+  hint(lcdText(e.message));
+}
+
+async function guess(text) {
+  if (busy || mode !== 'game' || !current || answered || over) return;
+  busy = true;
+  try {
+    const r = await post('api/game/guess', { gameId, guess: text });
+    answered = true;
+    options = [];
+    applyState(r);
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
+    if (r.over) {
+      status('OVER');
+      setField({ label: 'FINAL', value: `STREAK ${r.streak}`, locked: true });
+      return hint(`IT WAS ${lcdText(r.title)} - MARK TO RETRY`);
+    }
+    status(r.correct ? 'GOOD' : 'MISS');
+    setField({ label: 'TITLE', value: r.title, locked: true });
+    hint(lcdText(r.album || '') || '>>| FOR NEXT SONG');
+  } catch (e) {
+    showError(e);
+  } finally {
+    busy = false;
+  }
+}
+const giveUp = () => guess('');
+
+async function pickArtist(a) {
+  artist = a;
+  mode = 'game';
+  over = false;
+  streak = track = 0;
+  lives = LIVES;
+  await loadRound(() => post('api/game/start', { artistId: a.id, artistName: a.name, level }));
+}
+const nextRound = () => loadRound(() => post('api/game/next', { gameId }));
+
+async function loadRound(request) {
+  if (busy) return;
+  busy = true;
+  audio.pause();
+  answered = false;
+  current = null;
+  options = [];
+  renderTop();
+  status('LOAD');
+  hint('PICKING A SONG');
+  setField({ label: 'TITLE', placeholder: '-- ???? --' });
+  try {
+    const r = await request();
+    if (r.gameId) gameId = r.gameId;
+    applyState(r);
+    current = { preview: r.preview };
+    audio.src = r.preview;
+    renderTime();
+    status('PLAY');
+    hint('TYPE YOUR GUESS');
+    audio.play().catch(() => hint('PRESS PLAY THEN GUESS'));
+  } catch (e) {
+    showError(e);
+  } finally {
+    busy = false;
+  }
+}
+
+function changeArtist() {
+  audio.pause();
+  mode = 'artist';
+  artist = current = gameId = null;
+  answered = over = false;
+  options = [];
+  renderTop();
+  status('HELLO');
+  setField({ label: 'ARTIST', placeholder: 'NAME?' });
+  renderMatch();
+}
+
+function play() {
+  if (!current) return;
+  if (audio.ended || (!answered && audio.currentTime >= CLIP)) audio.currentTime = 0;
+  audio.play().catch(() => { status('ERR'); hint('CLIP FAILED - PRESS >>|'); });
+}
+const toggle = () => (audio.paused ? play() : audio.pause());
+function replay() { if (current) { audio.currentTime = 0; play(); } }
+function stop() { audio.pause(); audio.currentTime = 0; renderTime(); }
+
+audio.addEventListener('timeupdate', () => {
+  if (!answered && audio.currentTime >= CLIP) audio.pause();
+  renderTime();
+});
+audio.addEventListener('play', () => document.body.classList.add('spinning'));
+audio.addEventListener('pause', () => document.body.classList.remove('spinning'));
+audio.addEventListener('ended', () => document.body.classList.remove('spinning'));
+audio.addEventListener('error', () => {
+  if (mode === 'game' && current && audio.getAttribute('src')) { status('ERR'); hint('CLIP FAILED - PRESS >>|'); }
+});
+
+$('podPlay').onclick = toggle;
+$('podStop').onclick = stop;
+$('btnDisplay').onclick = giveUp;
+$('btnCharacter').onclick = changeArtist;
+
+const actions = {
+  submit,
+  play: toggle,
+  replay,
+  next: () => {
+    if (mode !== 'game') return;
+    if (over) return pickArtist(artist);
+    if (!answered && current) return guess('');
+    nextRound();
+  },
+};
+document.querySelectorAll('.seg').forEach(seg => {
+  seg.addEventListener('click', () => actions[seg.dataset.act]());
+  seg.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); actions[seg.dataset.act](); }
+  });
+});
+
+const help = $('help');
+function openHelp() {
+  help.querySelector(`input[value="${level}"]`).checked = true;
+  help.showModal();
+}
+help.addEventListener('close', () => {
+  const picked = help.querySelector('input[name="level"]:checked').value;
+  try { localStorage.setItem('seenHelp', '1'); localStorage.setItem('level', picked); } catch {}
+  if (picked !== level) {
+    level = picked;
+    setText('level', LEVELS[level]);
+    if (mode === 'game') return pickArtist(artist);
+  }
+  if (mode === 'artist') mainInput().focus();
+});
+$('helpBtn').onclick = openHelp;
+
+setText('level', LEVELS[level]);
+changeArtist();
+let seenHelp = false;
+try { seenHelp = localStorage.getItem('seenHelp') === '1'; } catch {}
+if (!seenHelp) openHelp();
+</script>
+</body>
+</html>

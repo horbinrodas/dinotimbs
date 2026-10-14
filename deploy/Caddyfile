@@ -1,0 +1,19 @@
+dinotimbs.com {
+	encode zstd gzip
+
+	redir /larpdle /larpdle/ 308
+	handle_path /larpdle/* {
+		reverse_proxy 127.0.0.1:3001
+	}
+
+	handle {
+		root * /srv/dinotimbs
+		file_server {
+			hide .git .github deploy README.md
+		}
+	}
+}
+
+www.dinotimbs.com {
+	redir https://dinotimbs.com{uri} permanent
+}
