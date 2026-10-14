@@ -295,7 +295,7 @@ const api = async (path, init) => {
 };
 const post = (path, data) => api(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
 const LEVELS = { larper: 'LARPER', 'not-larper': 'NOT LARPER' };
-let level = 'not-larper';
+let level = 'larper';
 try { if (LEVELS[localStorage.getItem('level')]) level = localStorage.getItem('level'); } catch {}
 const params = extra => new URLSearchParams({ id: artist.id, name: artist.name, level, ...extra });
 
