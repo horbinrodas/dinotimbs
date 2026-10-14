@@ -1,0 +1,15 @@
+[Unit]
+Description=Larpdle
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=deploy
+WorkingDirectory=/srv/dinotimbs/larpdle
+Environment=PORT=3001 HOST=127.0.0.1
+ExecStart=/usr/bin/node server.js
+Restart=always
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
