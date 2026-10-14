@@ -166,17 +166,30 @@ const routes = {
 
 async function searchArtists(q) {
   if (!q) return [];
-  const d = await dz(`/search/artist?q=${encodeURIComponent(q)}&limit=8`);
-  return d.data.map(a => ({ id: a.id, name: a.name, picture: a.picture_medium, fans: a.nb_fan }));
+  const { data } = await dz(`/search/artist?q=${encodeURIComponent(q)}&limit=25`);
+  const best = new Map();
+  for (const a of data) {
+    const key = a.name.toLowerCase();
+    if (!best.has(key) || a.nb_fan > best.get(key).nb_fan) best.set(key, a);
+  }
+  const exact = a => a.name.toLowerCase() === q.toLowerCase();
+  return [...best.values()]
+    .sort((a, b) => exact(b) - exact(a) || b.nb_fan - a.nb_fan)
+    .slice(0, 8)
+    .map(a => ({ id: a.id, name: a.name, picture: a.picture_medium, fans: a.nb_fan }));
 }
+
 async function searchSongs(id, name, query) {
-  if (!query) return [];
+  const words = norm(query).split(' ').filter(Boolean);
+  if (!words.length) return [];
   const { data } = await dz(`/search?q=${encodeURIComponent(`${name} ${query}`)}&limit=50`);
   const titles = new Map();
   for (const t of data) {
     if (t.artist?.id !== id) continue;
     const title = clean(t.title_short || t.title);
-    if (!titles.has(norm(title))) titles.set(norm(title), title);
+    const key = norm(title), titleWords = key.split(' ');
+    if (!words.every(w => titleWords.some(tw => tw.startsWith(w)))) continue;
+    if (!titles.has(key)) titles.set(key, title);
   }
   return [...titles.values()];
 }
