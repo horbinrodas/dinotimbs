@@ -46,7 +46,12 @@ const releasesOf = cache(360 * MIN);
 
 const VERSION = /remix|remaster/i;
 
-const clean = title => title.replace(/\s*[([][^)\]]*[)\]]/g, ' ').replace(/\s+-\s+.*$/, '').trim();
+const TAG = /remaster|remix|\bmix(ed)?\b|\blive\b|version|\bedit\b|\bdemo\b|acoustic|\bmono\b|stereo|deluxe|bonus|instrumental|radio|explicit|\bfeat|\bft\b|\bwith\b|\bfrom\b|re-?record|anniversary|session|\btake \d|\b(19|20)\d\d\b/i;
+const clean = title => title
+  .replace(/\s*[([]([^)\]]*)[)\]]/g, (m, inner) => (TAG.test(inner) ? ' ' : m))
+  .replace(/\s+-\s+(.*)$/, (m, inner) => (TAG.test(inner) ? '' : m))
+  .replace(/\s+/g, ' ')
+  .trim();
 
 function norm(title) {
   const key = clean(title).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();

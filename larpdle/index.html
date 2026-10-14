@@ -27,8 +27,11 @@
   body.mobile { flex-direction: column; justify-content: flex-start; overflow-x: hidden; overflow-y: auto; }
   #lcdDock { display: none; }
   body.mobile #lcdDock { display: block; position: relative; width: 100%; padding: 12px 8px 24px; }
-  #lcdFrame { position: relative; margin: 0 auto; padding: 10px; border-radius: 12px; background: #0f1317; }
-  #lcdFrame .lcd { position: relative; left: 0 !important; top: 0 !important; }
+  #lcdFrame { position: relative; margin: 0 auto; overflow: hidden; }
+  #modStage { position: absolute; top: 0; left: 0; width: 960px; height: 860px; transform-origin: top left; }
+  body.typing #helpBtn { display: none; }
+  body.typing #lcdDock { position: fixed; top: 0; left: 0; right: 0; z-index: 3; padding: 8px; }
+  body.typing #lcdFrame { filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.8)); }
   #fit { position: relative; overflow-x: clip; overflow-y: visible; }
   body:not(.mobile) #fit { overflow: visible; }
   @keyframes hover { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
@@ -178,11 +181,11 @@
     </g>
   </svg>
 
-  <div class="abs" style="left: 5px; top: 309px; width: 175px; height: 253px; border-radius: 3px; background: #111214"></div>
-  <div class="abs" style="left: 45px; top: 322px; width: 593px; height: 225px; border-radius: 6px 112px 112px 6px; background: #1e1f22">
+  <div class="abs mod" style="left: 5px; top: 309px; width: 175px; height: 253px; border-radius: 3px; background: #111214"></div>
+  <div class="abs mod" style="left: 45px; top: 322px; width: 593px; height: 225px; border-radius: 6px 112px 112px 6px; background: #1e1f22">
     <div class="abs" style="left: 0; top: 10px; width: 582px; height: 205px; border-radius: 4px 102px 102px 4px; background: #0f1317"></div>
   </div>
-  <div class="abs" style="left: 80px; top: 430px; transform: translate(-50%, -50%) rotate(-90deg); font-family: Genos, sans-serif; font-weight: 700; font-size: 72px; line-height: 1; color: #fff">702</div>
+  <div class="abs mod" style="left: 80px; top: 430px; transform: translate(-50%, -50%) rotate(-90deg); font-family: Genos, sans-serif; font-weight: 700; font-size: 72px; line-height: 1; color: #fff">702</div>
 
   <div class="abs lcd" style="left: 133px; top: 344px; width: 339px; height: 168px; border-radius: 4px; overflow: hidden; background: var(--lcd); transform-origin: top left">
     <div class="abs dot" data-f="artist" style="left: 10px; top: 7px; width: 186px; overflow: hidden; font-size: 18px">--------</div>
@@ -220,11 +223,11 @@
     </div>
   </div>
 
-  <div class="abs" style="left: 537px; top: 344px; width: 86px; height: 172px; border-radius: 0 86px 86px 0; background: #000"></div>
-  <div class="abs" style="left: 518px; top: 409px; width: 42px; height: 42px; border-radius: 50%; background: #111214"></div>
-  <button type="button" class="plain abs" id="volUp" aria-label="Previous match" style="left: 507px; top: 341px; width: 38px; height: 40px; font-size: 32px; font-weight: 500; line-height: 1">+</button>
-  <button type="button" class="plain abs" id="volDown" aria-label="Next match" style="left: 507px; top: 459px; width: 38px; height: 40px; font-size: 32px; font-weight: 500; line-height: 1">-</button>
-  <span class="abs" style="left: 486px; top: 400px; font-size: 22px; font-weight: 500; line-height: 26px; color: #fff">VOL/<br>NAME</span>
+  <div class="abs mod" style="left: 537px; top: 344px; width: 86px; height: 172px; border-radius: 0 86px 86px 0; background: #000"></div>
+  <div class="abs mod" style="left: 518px; top: 409px; width: 42px; height: 42px; border-radius: 50%; background: #111214"></div>
+  <button type="button" class="plain abs mod" id="volUp" data-step="-1" aria-label="Previous match" style="left: 507px; top: 341px; width: 38px; height: 40px; font-size: 32px; font-weight: 500; line-height: 1">+</button>
+  <button type="button" class="plain abs mod" id="volDown" data-step="1" aria-label="Next match" style="left: 507px; top: 459px; width: 38px; height: 40px; font-size: 32px; font-weight: 500; line-height: 1">-</button>
+  <span class="abs mod" style="left: 486px; top: 400px; font-size: 22px; font-weight: 500; line-height: 26px; color: #fff">VOL/<br>NAME</span>
 
   <button type="button" class="round-btn abs" id="btnCharacter" aria-label="Character: pick a new artist" style="left: 700px; top: 287px"></button>
   <button type="button" class="round-btn abs" id="btnDisplay" aria-label="Display: give up and reveal the song" style="left: 722px; top: 357px"></button>
@@ -232,7 +235,7 @@
   <span class="abs" style="left: 520px; top: 351px; width: 200px; text-align: right; font-family: Genos, sans-serif; font-weight: 700; font-size: 30px; line-height: 30px; color: #fff; pointer-events: none">Display</span>
 </div>
 </div>
-<div id="lcdDock"><div id="lcdFrame"></div></div>
+<div id="lcdDock"><div id="lcdFrame"><div id="modStage"></div></div></div>
 <div id="sr" class="sr-only" aria-live="polite"></div>
 
 <button type="button" id="helpBtn" aria-label="How to play and difficulty">?</button>
@@ -284,7 +287,7 @@ for (let i = 0; i < 15; i++) {
 const audio = new Audio();
 const CLIP = 10, LIVES = 3;
 let mode = 'artist', artist = null, gameId = null, current = null, answered = false, over = false, busy = false;
-let track = 0, streak = 0, lives = LIVES, options = [], sel = 0, typeTimer;
+let track = 0, streak = 0, lives = LIVES, options = [], sel = 0, typeTimer, start = 0;
 
 const lcdText = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
 const api = async (path, init) => {
@@ -295,13 +298,18 @@ const api = async (path, init) => {
 };
 const post = (path, data) => api(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
 const LEVELS = { larper: 'LARPER', 'not-larper': 'NOT LARPER' };
-let level = 'larper';
+let level = 'not-larper';
 try { if (LEVELS[localStorage.getItem('level')]) level = localStorage.getItem('level'); } catch {}
 const params = extra => new URLSearchParams({ id: artist.id, name: artist.name, level, ...extra });
 
 const playerLcd = document.querySelector('#stage .lcd');
-const dockLcd = playerLcd.cloneNode(true);
-$('lcdFrame').appendChild(dockLcd);
+let dockLcd;
+document.querySelectorAll('#stage .mod, #stage .lcd').forEach(el => {
+  const copy = el.cloneNode(true);
+  copy.removeAttribute('id');
+  if (el === playerLcd) dockLcd = copy;
+  $('modStage').appendChild(copy);
+});
 const all = sel => document.querySelectorAll(sel);
 const setText = (field, text) => all(`[data-f="${field}"]`).forEach(el => { el.textContent = text; });
 const inputs = all('.guess');
@@ -318,17 +326,37 @@ function fit() {
   $('stage').style.transform = `scale(${s})`;
   $('fit').style.width = 960 * s + 'px';
   $('fit').style.height = 860 * s + 'px';
-  if (mobile) {
-    const k = (w - 16 - 20) / 339;
-    $('lcdFrame').style.width = 339 * k + 20 + 'px';
-    $('lcdFrame').style.height = 168 * k + 20 + 'px';
-    dockLcd.style.transform = `scale(${k})`;
-  }
+  if (mobile) sizeDock();
   playerLcd.setAttribute('aria-hidden', mobile);
+}
+function sizeDock() {
+  const k = (fittedWidth - 16) / 633;
+  $('lcdFrame').style.width = 633 * k + 'px';
+  $('lcdFrame').style.height = 253 * k + 'px';
+  $('modStage').style.transform = `scale(${k}) translate(-5px, -309px)`;
 }
 addEventListener('resize', fit);
 fit();
 const mainInput = () => (mobile ? dockLcd : playerLcd).querySelector('.guess');
+
+const dockInput = dockLcd.querySelector('.guess');
+function syncTyping() {
+  const typing = mobile && document.activeElement === dockInput && !dockInput.hidden;
+  if (typing === document.body.classList.contains('typing')) return;
+  document.body.classList.toggle('typing', typing);
+  if (typing) scrollTo(0, 0);
+  pinDock();
+}
+function pinDock() {
+  $('lcdDock').style.top = document.body.classList.contains('typing') && window.visualViewport ? visualViewport.offsetTop + 'px' : '';
+}
+addEventListener('focusin', syncTyping);
+addEventListener('focusout', () => setTimeout(syncTyping));
+window.visualViewport?.addEventListener('resize', pinDock);
+window.visualViewport?.addEventListener('scroll', pinDock);
+document.addEventListener('pointerdown', e => {
+  if (document.body.classList.contains('typing') && e.target.closest('button, .seg')) e.preventDefault();
+});
 
 function status(text) { setText('status', text); }
 function hint(text) { setText('match', text); $('sr').textContent = text; }
@@ -345,7 +373,7 @@ function renderTop() {
   });
 }
 function renderTime() {
-  const t = Math.min(Math.floor(audio.currentTime || 0), answered ? 30 : CLIP);
+  const t = Math.max(0, Math.min(Math.floor((audio.currentTime || 0) - (answered ? 0 : start)), answered ? 30 : CLIP));
   setText('time', `0:${String(t).padStart(2, '0')}`);
 }
 function renderMatch() {
@@ -371,7 +399,8 @@ function setField({ label, value = '', locked = false, placeholder = '-- ???? --
     const overflow = reveal.scrollWidth - reveal.parentElement.clientWidth;
     if (overflow > 0) { reveal.style.setProperty('--shift', `-${overflow + 4}px`); reveal.classList.add('scroll'); }
   });
-  if (!locked) mainInput().focus();
+  if (!locked && !mobile) mainInput().focus();
+  syncTyping();
 }
 
 inputs.forEach(input => {
@@ -401,8 +430,7 @@ function cycle(step) {
   sel = (sel + step + options.length) % options.length;
   renderMatch();
 }
-$('volUp').onclick = () => cycle(-1);
-$('volDown').onclick = () => cycle(1);
+all('[data-step]').forEach(b => { b.onclick = () => cycle(Number(b.dataset.step)); });
 
 function submit() {
   if (mode === 'artist') {
@@ -480,7 +508,8 @@ async function loadRound(request) {
     if (r.gameId) gameId = r.gameId;
     applyState(r);
     current = { preview: r.preview };
-    audio.src = r.preview;
+    start = CLIP * Math.floor(Math.random() * 3);
+    audio.src = `${r.preview}#t=${start}`;
     renderTime();
     status('PLAY');
     hint('TYPE YOUR GUESS');
@@ -506,15 +535,17 @@ function changeArtist() {
 
 function play() {
   if (!current) return;
-  if (audio.ended || (!answered && audio.currentTime >= CLIP)) audio.currentTime = 0;
+  if (audio.ended) audio.currentTime = 0;
+  if (!answered && (audio.currentTime < start || audio.currentTime >= start + CLIP)) audio.currentTime = start;
   audio.play().catch(() => { status('ERR'); hint('CLIP FAILED - PRESS >>|'); });
 }
 const toggle = () => (audio.paused ? play() : audio.pause());
-function replay() { if (current) { audio.currentTime = 0; play(); } }
-function stop() { audio.pause(); audio.currentTime = 0; renderTime(); }
+function replay() { if (current) { audio.currentTime = answered ? 0 : start; play(); } }
+function stop() { audio.pause(); audio.currentTime = answered ? 0 : start; renderTime(); }
 
 audio.addEventListener('timeupdate', () => {
-  if (!answered && audio.currentTime >= CLIP) audio.pause();
+  if (!answered && audio.currentTime < start - 0.5) audio.currentTime = start;
+  if (!answered && audio.currentTime >= start + CLIP) audio.pause();
   renderTime();
 });
 audio.addEventListener('play', () => document.body.classList.add('spinning'));
@@ -560,9 +591,15 @@ help.addEventListener('close', () => {
     setText('level', LEVELS[level]);
     if (mode === 'game') return pickArtist(artist);
   }
-  if (mode === 'artist') mainInput().focus();
+  if (mode === 'artist' && !mobile) mainInput().focus();
 });
 $('helpBtn').onclick = openHelp;
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || mode !== 'game' || !answered || over || help.open) return;
+  if (e.target.closest?.('input, button, .seg')) return;
+  e.preventDefault();
+  nextRound();
+});
 
 setText('level', LEVELS[level]);
 changeArtist();
