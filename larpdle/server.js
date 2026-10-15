@@ -74,7 +74,7 @@ async function findOriginal(t) {
 }
 
 const tagged = t => clean(t.title) !== t.title.trim();
-const LIVE_OR_BEST = /\blive\b|en vivo|en directo|concierto|unplugged|greatest|grandes [eé]xitos|best of|\bhits\b|collection|colecci[oó]n|antolog|essential|lo mejor/i;
+const LIVE_OR_BEST = /\blive\b|en vivo|en directo|concierto|unplugged|greatest|[eé]xitos|best of|\bhits\b|collection|colecci[oó]n|antolog|anthology|essential|lo mejor|mejores|obras|cumbres|definitiv|\bsingles\b|retrospect/i;
 
 async function pickFrom(tracks, skip) {
   const songs = new Map();
@@ -229,6 +229,10 @@ http.createServer(async (req, res) => {
     if (url.pathname === '/') {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       return res.end(fs.readFileSync(path.join(__dirname, 'index.html')));
+    }
+    if (/^\/fonts\/[\w-]+\.woff2$/.test(url.pathname) && fs.existsSync(path.join(__dirname, url.pathname))) {
+      res.writeHead(200, { 'Content-Type': 'font/woff2', 'Cache-Control': 'public, max-age=31536000, immutable' });
+      return fs.createReadStream(path.join(__dirname, url.pathname)).pipe(res);
     }
     if (url.pathname === '/api/artists') return json(res, await searchArtists(q));
     if (url.pathname === '/api/songs') {

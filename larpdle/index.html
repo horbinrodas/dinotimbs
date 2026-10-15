@@ -5,10 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Larpdle</title>
 <link rel="icon" type="image/png" href="https://dinotimbs.com/favicon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=BBH+Sans+Bartle&family=Doto:wght@700;900&family=Genos:wght@500;700&family=Inter:wght@500;700&family=Michroma&display=swap" rel="stylesheet">
 <style>
-  @font-face { font-family: DSEG7; src: url(https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff2) format('woff2'); }
+  @font-face { font-family: 'DSEG7'; src: url(fonts/DSEG7Classic-Bold.woff2) format('woff2'); font-weight: 400; font-display: swap; }
+  @font-face { font-family: 'BBH Sans Bartle'; src: url(fonts/bbh-sans-bartle-latin-400-normal.woff2) format('woff2'); font-weight: 400; font-display: swap; }
+  @font-face { font-family: 'Michroma'; src: url(fonts/michroma-latin-400-normal.woff2) format('woff2'); font-weight: 400; font-display: swap; }
+  @font-face { font-family: 'Doto'; src: url(fonts/doto-latin-700-normal.woff2) format('woff2'); font-weight: 700; font-display: swap; }
+  @font-face { font-family: 'Doto'; src: url(fonts/doto-latin-900-normal.woff2) format('woff2'); font-weight: 900; font-display: swap; }
+  @font-face { font-family: 'Genos'; src: url(fonts/genos-latin-500-normal.woff2) format('woff2'); font-weight: 500; font-display: swap; }
+  @font-face { font-family: 'Genos'; src: url(fonts/genos-latin-700-normal.woff2) format('woff2'); font-weight: 700; font-display: swap; }
+  @font-face { font-family: 'Inter'; src: url(fonts/inter-latin-500-normal.woff2) format('woff2'); font-weight: 500; font-display: swap; }
+  @font-face { font-family: 'Inter'; src: url(fonts/inter-latin-700-normal.woff2) format('woff2'); font-weight: 700; font-display: swap; }
   :root { --ink: #1f2719; --lcd: #a3ae8f; --yellow: #edd565; }
   * { box-sizing: border-box; }
   body { margin: 0; min-height: 100vh; background: #1c1c1e; display: flex; align-items: center; justify-content: center; font-family: Inter, sans-serif; overflow: hidden; }
@@ -92,6 +98,7 @@
   .level small { font-size: 13px; color: #4a4740; line-height: 1.3; }
   .level input:checked + span { background: var(--lcd); box-shadow: inset 0 0 0 2px var(--ink); }
   .level input:focus-visible + span { outline: 3px solid #6e1712; outline-offset: 2px; }
+  #volume { width: 100%; height: 28px; margin: 0; accent-color: var(--ink); cursor: pointer; }
   .go { height: 52px; border: none; border-radius: 26px; background: #000; color: var(--yellow); font-family: Michroma, sans-serif; font-size: 15px; letter-spacing: 0.12em; cursor: pointer; }
   .go:focus-visible { outline: 3px solid #6e1712; outline-offset: 3px; }
   @media (max-width: 480px) {
@@ -266,6 +273,10 @@
       </dl>
     </section>
     <section>
+      <h3><label for="volume">Volume</label></h3>
+      <input type="range" id="volume" min="0" max="1" step="0.05" value="1">
+    </section>
+    <section>
       <h3 id="levelTitle">Difficulty</h3>
       <div class="levels" role="radiogroup" aria-labelledby="levelTitle">
         <label class="level"><input type="radio" name="level" value="larper"><span><b>Larper</b><small></small></span></label>
@@ -280,11 +291,17 @@
 const $ = id => document.getElementById(id);
 for (let i = 0; i < 15; i++) {
   const img = new Image();
-  img.src = 'https://dinotimbs.com/Dinotimbs.png';
+  img.src = 'https://dinotimbs.com/Dinotimbs.webp';
   img.alt = '';
   $('bgTrack').appendChild(img);
 }
 const audio = new Audio();
+try { const v = parseFloat(localStorage.getItem('volume')); if (v >= 0 && v <= 1) audio.volume = v; } catch {}
+$('volume').value = audio.volume;
+$('volume').addEventListener('input', e => {
+  audio.volume = Number(e.target.value);
+  try { localStorage.setItem('volume', e.target.value); } catch {}
+});
 const CLIP = 10, LIVES = 3;
 let mode = 'artist', artist = null, gameId = null, current = null, answered = false, over = false, busy = false;
 let track = 0, streak = 0, lives = LIVES, options = [], sel = 0, typeTimer, start = 0;

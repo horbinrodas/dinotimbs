@@ -1,5 +1,8 @@
 dinotimbs.com {
 	encode zstd gzip
+	log {
+		output file /var/log/caddy/dinotimbs.log
+	}
 
 	redir /larpdle /larpdle/ 308
 	handle_path /larpdle/* {
