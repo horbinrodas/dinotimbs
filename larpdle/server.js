@@ -46,7 +46,7 @@ const releasesOf = cache(360 * MIN);
 
 const VERSION = /remix|remaster/i;
 
-const TAG = /remaster|remix|\bmix(ed)?\b|\blive\b|version|\bedit\b|\bdemo\b|acoustic|\bmono\b|stereo|deluxe|bonus|instrumental|radio|explicit|\bfeat|\bft\b|\bwith\b|\bfrom\b|re-?record|anniversary|session|\btake \d|\b(19|20)\d\d\b/i;
+const TAG = /remaster|remix|\bmix(ed)?\b|\blive\b|vivo|directo|concierto|unplugged|versi[oó]n|\bedit\b|\bdemo\b|acoustic|\bmono\b|stereo|deluxe|bonus|instrumental|radio|explicit|\bfeat|\bft\b|\bwith\b|\bfrom\b|re-?record|anniversary|session|\btake \d|\b(19|20)\d\d\b/i;
 const clean = title => title
   .replace(/\s*[([]([^)\]]*)[)\]]/g, (m, inner) => (TAG.test(inner) ? ' ' : m))
   .replace(/\s+-\s+(.*)$/, (m, inner) => (TAG.test(inner) ? '' : m))
@@ -54,7 +54,7 @@ const clean = title => title
   .trim();
 
 function norm(title) {
-  const key = clean(title).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+  const key = clean(title).normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
   return key || title.toLowerCase().trim();
 }
 const keyOf = t => norm(t.title_short || t.title);
@@ -73,8 +73,16 @@ async function findOriginal(t) {
   return original ?? (/remix/i.test(t.title) ? null : t);
 }
 
+const tagged = t => clean(t.title) !== t.title.trim();
+const LIVE_OR_BEST = /\blive\b|en vivo|en directo|concierto|unplugged|greatest|grandes [eé]xitos|best of|\bhits\b|collection|colecci[oó]n|antolog|essential|lo mejor/i;
+
 async function pickFrom(tracks, skip) {
-  const fresh = tracks.filter(t => !skip.has(keyOf(t)));
+  const songs = new Map();
+  for (const t of tracks) {
+    const key = keyOf(t), seen = songs.get(key);
+    if (!skip.has(key) && (!seen || (tagged(seen) && !tagged(t)))) songs.set(key, t);
+  }
+  const fresh = [...songs.values()];
   for (let tries = 0; tries < 5 && fresh.length; tries++) {
     let t = fresh.splice(Math.floor(Math.random() * fresh.length), 1)[0];
     if (VERSION.test(t.title) && !(t = await findOriginal(t))) continue;
@@ -93,7 +101,8 @@ async function pickTop(artist, skip) {
 async function pickCatalog(artist, skip) {
   const releases = await releasesOf(artist.id, () => allPages(`/artist/${artist.id}/albums?limit=100`));
   const singles = releases.filter(r => r.record_type === 'single');
-  const longer = releases.filter(r => r.record_type !== 'single');
+  const albums = releases.filter(r => r.record_type !== 'single' && r.record_type !== 'compile' && !LIVE_OR_BEST.test(r.title));
+  const longer = albums.length ? albums : releases.filter(r => r.record_type !== 'single');
   for (let tries = 0; tries < 4; tries++) {
     const useSingles = singles.length && (!longer.length || Math.random() < SINGLE_CHANCE);
     const bucket = useSingles ? singles : longer;
