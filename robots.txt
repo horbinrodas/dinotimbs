@@ -1,0 +1,14 @@
+User-agent: *
+Disallow: /larpdle/api/
+
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: anthropic-ai
+User-agent: CCBot
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: Meta-ExternalAgent
+User-agent: Bytespider
+Disallow: /
+
+Sitemap: https://dinotimbs.com/sitemap.xml
