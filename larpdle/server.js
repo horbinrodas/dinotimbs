@@ -5,7 +5,7 @@ const crypto = require('node:crypto');
 
 const API = 'https://api.deezer.com';
 const PORT = process.env.PORT || 3000;
-const LIVES = 3, TOP = 30, SINGLE_CHANCE = 0.2;
+const LIVES = 3, TOP = 30, SINGLE_CHANCE = 0.2, RATE = 120;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const fail = (status, message) => Object.assign(new Error(message), { status });
 
@@ -222,6 +222,15 @@ const json = (res, body, code = 200) => {
   res.end(JSON.stringify(body));
 };
 
+const hits = new Map();
+setInterval(() => hits.clear(), MIN).unref();
+function limited(req) {
+  const ip = req.headers['x-forwarded-for']?.split(',').pop().trim() || req.socket.remoteAddress;
+  const n = (hits.get(ip) || 0) + 1;
+  hits.set(ip, n);
+  return n > RATE;
+}
+
 http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
   const q = (url.searchParams.get('q') || '').trim();
@@ -234,6 +243,7 @@ http.createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'font/woff2', 'Cache-Control': 'public, max-age=31536000, immutable' });
       return fs.createReadStream(path.join(__dirname, url.pathname)).pipe(res);
     }
+    if (url.pathname.startsWith('/api/') && limited(req)) return json(res, { error: 'Slow down' }, 429);
     if (url.pathname === '/api/artists') return json(res, await searchArtists(q));
     if (url.pathname === '/api/songs') {
       return json(res, await searchSongs(Number(url.searchParams.get('id')), url.searchParams.get('name') || '', q));

@@ -4,9 +4,32 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dinotimbs</title>
+  <meta name="description" content="Dinotimbs. Home of Larpdle.">
+  <meta property="og:title" content="Dinotimbs">
+  <meta property="og:description" content="Dinotimbs. Home of Larpdle.">
+  <meta property="og:url" content="https://dinotimbs.com/">
+  <meta property="og:image" content="https://dinotimbs.com/og.jpg">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body>
+  <nav class="games" aria-labelledby="gamesTitle">
+    <div class="lcd">
+      <div class="lcd-head">
+        <h1 id="gamesTitle">DINOTIMBS</h1>
+        <span>GAMES</span>
+      </div>
+      <ol>
+        <li>
+          <a href="/larpdle/">
+            <span class="num">01</span>
+            <span class="name">LARPDLE<small>HOW WELL DO YOU KNOW YOUR FAVORITE ARTIST</small></span>
+            <span class="go" aria-hidden="true">&#9654;</span>
+          </a>
+        </li>
+      </ol>
+    </div>
+  </nav>
   <div class="scroller">
     <div class="scroller-content">
       <img src="Dinotimbs.webp" alt="Dinotimbs">
@@ -28,6 +51,24 @@
   </div>
 
   <style>
+    @font-face { font-family: 'Doto'; src: url(larpdle/fonts/doto-latin-900-normal.woff2) format('woff2'); font-weight: 900; font-display: swap; }
+    @font-face { font-family: 'DSEG7'; src: url(larpdle/fonts/DSEG7Classic-Bold.woff2) format('woff2'); font-display: swap; }
+    @font-face { font-family: 'Inter'; src: url(larpdle/fonts/inter-latin-700-normal.woff2) format('woff2'); font-weight: 700; font-display: swap; }
+    :root { --ink: #1f2719; --lcd: #a3ae8f; }
+    .games { position: fixed; inset: 0; z-index: 1; display: flex; align-items: center; justify-content: center; padding: 16px; pointer-events: none; }
+    .games .lcd { pointer-events: auto; width: min(440px, 100%); padding: 12px; border-radius: 14px; background: #0f1317; box-shadow: 0 30px 70px rgba(0, 0, 0, 0.75); }
+    .lcd-head, .games ol { background: var(--lcd); color: var(--ink); }
+    .lcd-head { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-radius: 6px 6px 0 0; border-bottom: 2px solid var(--ink); font-family: Inter, sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.12em; }
+    .lcd-head h1 { margin: 0; font-family: Doto, monospace; font-weight: 900; font-size: 24px; letter-spacing: 0.04em; -webkit-text-stroke: 0.4px currentColor; }
+    .games ol { list-style: none; margin: 0; padding: 0; border-radius: 0 0 6px 6px; overflow: hidden; background-image: radial-gradient(circle, rgba(31, 39, 25, 0.1) 1px, transparent 1.3px); background-size: 5px 5px; }
+    .games li + li { border-top: 2px solid var(--ink); }
+    .games a { display: flex; align-items: center; gap: 14px; min-height: 64px; padding: 12px 14px; color: var(--ink); text-decoration: none; }
+    .games a:hover, .games a:focus-visible { background: var(--ink); color: var(--lcd); outline: none; }
+    .num { font-family: DSEG7, monospace; font-size: 26px; }
+    .name { flex: 1; display: flex; flex-direction: column; gap: 4px; font-family: Doto, monospace; font-weight: 900; font-size: 30px; line-height: 1; -webkit-text-stroke: 0.4px currentColor; }
+    .name small { font-family: Inter, sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.12em; -webkit-text-stroke: 0; }
+    .go { font-size: 18px; }
+    @media (prefers-reduced-motion: reduce) { .scroller-content { animation: none !important; } }
     body {
       background-color: black;
       background-size: contain;
@@ -42,7 +83,7 @@
     }
     .scroller-content {
       display: flex;
-    }   
+    }
     .scroller-content img {
       object-fit: cover;
       flex-shrink: 0;
