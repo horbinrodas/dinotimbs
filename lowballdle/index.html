@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
+<title>Lowballdle</title>
+<meta name="description" content="How low can you ball.">
+<link rel="icon" type="image/png" href="https://dinotimbs.com/favicon.png">
+<style>
+  :root { --blue: #0866ff; --bg: #f0f2f5; --card: #fff; --text: #050505; --muted: #65676b; --them: #e4e6eb; --line: #ced0d4; --green: #31a24c; --red: #e41e3f; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #18191a; --card: #242526; --text: #e4e6eb; --muted: #b0b3b8; --them: #3a3b3c; --line: #3e4042; }
+  }
+  * { box-sizing: border-box; }
+  * { scrollbar-width: none; }
+  *::-webkit-scrollbar { display: none; }
+  body { margin: 0; background: #000; color: var(--text); font: 15px/1.34 system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  .bg { position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+  .bg-track { display: flex; animation: bg-x 300s linear infinite alternate-reverse; }
+  .bg-track img { height: 100vh; flex-shrink: 0; object-fit: cover; }
+  @keyframes bg-x { to { transform: translateX(-500%); } }
+  @media (max-width: 600px) {
+    .bg-track { flex-direction: column; animation: bg-y 30s linear infinite alternate-reverse; }
+    .bg-track img { width: 100vw; height: auto; }
+    @keyframes bg-y { to { transform: translateY(-25%); } }
+  }
+  @media (prefers-reduced-motion: reduce) { .bg-track { animation: none; } }
+  .top, .app { position: relative; z-index: 1; }
+  .top { height: 56px; display: flex; align-items: center; gap: 10px; padding: 0 16px; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.8); }
+  .top .tag { color: #fff !important; }
+  .top a { color: inherit; text-decoration: none; display: flex; align-items: center; gap: 10px; }
+  .logo { width: 40px; height: 40px; border-radius: 50%; background: var(--blue); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 22px; }
+  .top b { font-size: 22px; letter-spacing: -.02em; }
+  .top .tag { margin-left: auto; color: var(--muted); font-size: 13px; }
+
+  .app { display: grid; grid-template-columns: 1fr 380px; gap: 16px; max-width: 1120px; margin: 16px auto; padding: 0 16px; height: calc(100dvh - 88px); }
+
+  /* listing */
+  .listing { background: var(--card); border-radius: 12px; overflow: auto; box-shadow: 0 30px 70px rgba(0,0,0,.75); }
+  .photo { aspect-ratio: 16/10; background: #000; display: grid; place-items: center; font-size: 140px; position: relative; }
+  .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+  .thumb { overflow: hidden; }
+  .info { padding: 16px 20px 24px; }
+  .info h1 { font-size: 24px; margin: 0 0 6px; line-height: 1.2; }
+  .price { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .price .hidden-price { letter-spacing: .1em; }
+  .sold { background: var(--red); color: #fff; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+  .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .info h2 { font-size: 17px; margin: 20px 0 8px; }
+  .row { display: grid; grid-template-columns: 110px 1fr; gap: 6px; font-size: 15px; }
+  .row span:first-child { color: var(--muted); }
+  .desc { white-space: pre-line; margin: 10px 0 0; }
+  .seller { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
+  .avatar { flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 700; background: #8a5a44; }
+  .avatar.big { width: 44px; height: 44px; font-size: 18px; }
+  .stars { color: #f7b928; }
+
+  /* chat */
+  .chat { background: var(--card); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 30px 70px rgba(0,0,0,.75); }
+  .chat-head { display: flex; gap: 10px; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+  .back { display: none; background: none; border: 0; padding: 6px; font-size: 22px; color: var(--blue); line-height: 1; }
+  .thumb { flex: none; width: 40px; height: 40px; border-radius: 8px; background: #000; display: grid; place-items: center; font-size: 24px; border: 0; padding: 0; }
+  .who { min-width: 0; flex: 1; }
+  .who b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; }
+  .who small { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--muted); font-size: 12px; }
+  .pips { display: flex; gap: 4px; flex: none; }
+  .pips i { width: 9px; height: 9px; border-radius: 50%; background: var(--blue); }
+  .pips i.used { background: var(--them); }
+
+  .msgs { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 2px; }
+  .meta { font-size: 12px; color: var(--muted); text-align: center; margin: 10px 0 6px; }
+  .intro { text-align: center; margin: 8px 0 16px; }
+  .intro .avatar { margin: 0 auto 8px; width: 60px; height: 60px; font-size: 26px; }
+  .intro b { display: block; font-size: 17px; }
+  .intro small { color: var(--muted); }
+  .line { display: flex; align-items: flex-end; gap: 6px; max-width: 80%; }
+  .line.me { align-self: flex-end; flex-direction: row-reverse; }
+  .line .avatar { width: 28px; height: 28px; font-size: 13px; }
+  .line.cont .avatar { visibility: hidden; }
+  .bubble { position: relative; padding: 8px 12px; border-radius: 18px; background: var(--them); overflow-wrap: anywhere; }
+  .me .bubble { background: var(--blue); color: #fff; }
+  .me .bubble.offer { font-weight: 600; font-size: 17px; }
+  .line.gap { margin-top: 8px; }
+  .react { position: absolute; bottom: -12px; left: -6px; background: var(--card); border-radius: 12px; padding: 1px 4px; font-size: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.25); animation: pop .25s ease-out; }
+  .line.reacted { margin-bottom: 12px; }
+  .cue { align-self: flex-start; margin: 4px 0 4px 34px; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: var(--them); }
+  .cue.up { color: var(--green); }
+  .cue.down { color: var(--red); }
+  .shake { animation: shake .4s; }
+  @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+  @keyframes shake { 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
+  .typing .bubble { display: flex; gap: 4px; padding: 12px 14px; }
+  .typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: blink 1.2s infinite; }
+  .typing i:nth-child(2) { animation-delay: .2s; }
+  .typing i:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink { 0%, 60%, 100% { opacity: .3; } 30% { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .react, .shake, .typing i { animation: none; } }
+
+  .result { align-self: stretch; margin: 12px 0 4px; border: 1px solid var(--line); border-radius: 12px; padding: 12px; text-align: center; }
+  .result b { display: block; font-size: 17px; }
+  .result .trail { font-size: 22px; letter-spacing: 2px; margin: 6px 0 10px; }
+  .btn { border: 0; border-radius: 6px; padding: 8px 16px; font-weight: 600; background: var(--blue); color: #fff; }
+  .btn.soft { background: var(--them); color: var(--text); }
+
+  .chips { display: flex; gap: 6px; padding: 0 12px 8px; overflow-x: auto; }
+  .chips button { flex: none; border: 1px solid var(--line); background: var(--card); border-radius: 16px; padding: 6px 12px; font-size: 13px; }
+  .composer { display: flex; gap: 8px; padding: 8px 12px 12px; align-items: center; }
+  .field { flex: 1; display: flex; align-items: center; background: var(--them); border-radius: 20px; padding: 0 14px; height: 40px; }
+  .field span { font-weight: 600; color: var(--muted); margin-right: 2px; }
+  .field input { flex: 1; min-width: 0; border: 0; background: none; color: inherit; font: inherit; font-size: 16px; outline: 0; }
+  .send { flex: none; width: 40px; height: 40px; border: 0; border-radius: 50%; background: none; color: var(--blue); display: grid; place-items: center; }
+  .send:disabled { color: var(--muted); cursor: default; }
+  .closed { padding: 14px; text-align: center; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); }
+
+  @media (max-width: 760px) {
+    .top { display: none; }
+    .app { grid-template-columns: 1fr; margin: 0; padding: 12px; gap: 0; height: 100dvh; }
+    .listing { display: none; }
+    body.view-listing .listing { display: block; }
+    body.view-listing .chat { display: none; }
+    .back { display: block; }
+  }
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"><div class="bg-track" id="bgTrack"></div></div>
+<header class="top">
+
+</header>
+
+<main class="app">
+  <article class="listing" aria-label="Listing">
+    <div class="photo" id="photo"></div>
+    <div class="info">
+      <button class="back" id="toChat" aria-label="Back to chat" style="margin: -6px 0 6px -6px">←</button>
+      <h1 id="title"></h1>
+      <div class="price"><span class="hidden-price" id="price">$???</span></div>
+      <div class="sub" id="listed"></div>
+      <h2>Details</h2>
+      <div class="row"><span>Condition</span><span id="cond"></span></div>
+      <p class="desc" id="desc"></p>
+      <h2>Seller information</h2>
+      <div class="seller">
+        <span class="avatar big" id="sellerAvatar"></span>
+        <div><b id="sellerName"></b><div class="sub"><span class="stars">★★★★☆</span> · <span id="joined"></span></div></div>
+      </div>
+    </div>
+  </article>
+
+  <section class="chat" aria-label="Chat with seller">
+    <div class="chat-head">
+      <a class="back" href="/" aria-label="Back to games">←</a>
+      <button class="thumb" id="thumb" aria-label="View listing"></button>
+      <div class="who"><b id="chatTitle"></b><small id="chatSub"></small></div>
+      <div class="pips" id="pips" role="img"></div>
+    </div>
+    <div class="msgs" id="msgs" aria-live="polite"></div>
+    <div id="bottom">
+      <div class="chips" id="chips"></div>
+      <form class="composer" id="composer">
+        <label class="field"><span>$</span><input id="offer" inputmode="decimal" autocomplete="off" placeholder="Send an offer" aria-label="Your offer in dollars"></label>
+        <button class="send" id="send" disabled aria-label="Send offer">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2z"/></svg>
+        </button>
+      </form>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+for (let i = 0; i < 15; i++) $('bgTrack').append(Object.assign(new Image(), { src: 'https://dinotimbs.com/Dinotimbs.webp', alt: '' }));
+const CHIPS = { 'Is this still available?': 'Yes still available! Make me an offer', 'What’s your lowest?': 'Make me an offer and we’ll see 😉' };
+const el = (tag, cls = '', text = '') => Object.assign(document.createElement(tag), { className: cls, textContent: text });
+const wait = ms => new Promise(r => setTimeout(r, ms));
+let g = null, lastFrom = null, busy = false;
+
+const money = cents => new Intl.NumberFormat('en-US', { style: 'currency', currency: g.item.currency, minimumFractionDigits: cents % 100 ? 2 : 0 }).format(cents / 100);
+const hue = s => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % 360;
+const seller = () => g.item.seller_name || 'Seller';
+const first = () => seller().split(' ')[0];
+async function api(path, init) {
+  const res = await fetch(path, init);
+  const d = await res.json().catch(() => ({ error: 'Server is not responding' }));
+  if (d.error) throw new Error(d.error);
+  return d;
+}
+
+function avatar(cls = '') {
+  const a = el('span', 'avatar ' + cls, seller()[0]);
+  a.style.background = `hsl(${hue(seller())} 45% 40%)`;
+  return a;
+}
+function meta(text) { return el('div', 'meta', text); }
+function scroll() { $('msgs').scrollTop = $('msgs').scrollHeight; }
+function pips() {
+  const used = g.offers.length;
+  $('pips').replaceChildren(...Array.from({ length: g.max }, (_, i) => el('i', i < used ? 'used' : '')));
+  $('pips').setAttribute('aria-label', `${g.max - used} offers left`);
+}
+function closeChat(text) { $('bottom').replaceChildren(el('div', 'closed', text)); }
+
+function say(from, text, cls = '') {
+  const line = el('div', `line ${from}${lastFrom === from ? ' cont' : ' gap'}`);
+  if (from === 'them') line.append(avatar());
+  line.append(el('div', 'bubble ' + cls, text));
+  $('msgs').append(line);
+  lastFrom = from;
+  scroll();
+  return line;
+}
+async function sellerSays(text, ms) {
+  const t = say('them', '');
+  t.classList.add('typing');
+  t.querySelector('.bubble').innerHTML = '<i></i><i></i><i></i>';
+  await wait(ms);
+  t.remove();
+  lastFrom = $('msgs').lastElementChild?.classList.contains('them') ? 'them' : 'me';
+  return say('them', text);
+}
+function react(line, emoji) {
+  if (!emoji) return;
+  line.querySelector('.bubble').append(el('span', 'react', emoji));
+  line.classList.add('reacted');
+  scroll();
+}
+
+async function showOffer(o, live) {
+  const mine = say('me', money(o.amount), 'offer');
+  if (live) await wait(400);
+  react(mine, o.emoji);
+  const reply = live ? await sellerSays(o.line, 700 + (o.tier ?? 1) * 450 + Math.random() * 400) : say('them', o.line);
+  if (live && o.tier === 3) reply.querySelector('.bubble').classList.add('shake');
+  if (o.verdict !== 'win') $('msgs').append(el('div', 'cue ' + o.verdict, o.verdict === 'up' ? '▲ HIGHER' : '▼ LOWER'));
+  scroll();
+}
+
+function noListing(text) {
+  $('photo').textContent = $('thumb').textContent = '📭';
+  $('title').textContent = 'No listing today';
+  $('chatTitle').textContent = 'Lowballdle';
+  $('chatSub').textContent = 'Marketplace';
+  $('price').textContent = '';
+  for (const n of document.querySelectorAll('.info > :not(h1, .back)')) n.remove();
+  $('msgs').append(meta(text));
+  closeChat(text);
+}
+
+async function start() {
+  try { g = await api('api/today'); } catch (e) { return noListing(e.message); }
+  if (!g.item) return noListing('No listing today. Come back tomorrow!');
+  const it = g.item;
+  if (it.has_photo) {
+    const src = `photo/main/${g.day}`;
+    $('photo').replaceChildren(Object.assign(new Image(), { src, alt: it.title }));
+    $('thumb').replaceChildren(Object.assign(new Image(), { src, alt: '' }));
+  } else {
+    $('photo').textContent = $('thumb').textContent = '📦';
+  }
+  $('title').textContent = $('chatTitle').textContent = it.title;
+  $('chatSub').textContent = `${seller()} · Marketplace`;
+  $('listed').textContent = [it.listed_ago && `Listed ${it.listed_ago}`, it.location && `in ${it.location}`].filter(Boolean).join(' ');
+  $('cond').textContent = it.condition || '—';
+  $('desc').textContent = it.description || '';
+  $('sellerName').textContent = seller();
+  $('joined').textContent = it.seller_joined || '';
+  $('sellerAvatar').replaceWith(Object.assign(avatar('big'), { id: 'sellerAvatar' }));
+  const intro = el('div', 'intro');
+  intro.append(avatar(), el('b', '', seller()), el('small', '', ['Usually responds within an hour', it.location].filter(Boolean).join(' · ')));
+  $('msgs').append(intro, meta('Today'));
+  for (const o of g.offers) await showOffer(o, false);
+  pips();
+  if (g.over) return finish(g.won ? null : `Sorry, it already sold for ${money(g.price)}`);
+  if (!g.offers.length) {
+    for (const q in CHIPS) {
+      const b = el('button', '', q);
+      b.type = 'button';
+      b.onclick = () => { b.remove(); say('me', q); sellerSays(CHIPS[q], 700); };
+      $('chips').append(b);
+    }
+  }
+}
+
+$('offer').addEventListener('input', e => {
+  const v = e.target.value.replace(/[^\d.]/g, '').replace(/(\..*)\./g, '$1').replace(/(\.\d{2})\d+/, '$1');
+  e.target.value = v;
+  $('send').disabled = !(Number(v) > 0) || busy;
+});
+
+$('composer').addEventListener('submit', async e => {
+  e.preventDefault();
+  const amount = Number($('offer').value);
+  if (!(amount > 0) || busy || g.over) return;
+  busy = true;
+  $('send').disabled = $('offer').disabled = true;
+  $('chips')?.remove();
+  try {
+    const res = await api('api/offer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount }) });
+    $('offer').value = '';
+    g = res;
+    pips();
+    await showOffer(g.offers.at(-1), true);
+    if (g.over) {
+      if (!g.won) { await wait(600); await sellerSays(g.sold, 1400); }
+      return finish();
+    }
+  } catch (err) {
+    $('msgs').append(meta(`⚠️ ${err.message}`));
+    scroll();
+  } finally {
+    busy = false;
+    if ($('offer')) $('offer').disabled = false;
+  }
+  if (!g.over) $('offer').focus();
+});
+
+function finish(soldText) {
+  if (soldText) say('them', soldText);
+  const trail = g.offers.map(o => o.verdict === 'win' ? '🤝' : o.verdict === 'up' ? '⬆️' : '⬇️').join('');
+  const score = g.won ? `${g.offers.length}/${g.max}` : `X/${g.max}`;
+  $('msgs').append(meta(g.won ? `You and ${first()} agreed on ${money(g.offers.at(-1).amount)}` : `${first()} marked this listing as sold`));
+  const card = el('div', 'result');
+  card.append(el('b', '', `${g.won ? 'Deal closed' : 'Sold to someone else'} · ${score}`), el('div', 'trail', trail));
+  const share = el('button', 'btn', 'Share');
+  share.onclick = async () => {
+    const text = `Lowballdle #${g.number} ${score}\n${trail}\nhttps://dinotimbs.com/lowballdle/`;
+    try { await navigator.clipboard.writeText(text); share.textContent = 'Copied!'; } catch { share.textContent = 'Copy failed'; }
+  };
+  card.append(share);
+  $('msgs').append(card);
+  $('price').textContent = money(g.price);
+  $('price').classList.remove('hidden-price');
+  $('price').insertAdjacentElement('afterend', el('span', 'sold', 'SOLD'));
+  closeChat('This listing is no longer available. Come back tomorrow for a new one.');
+  scroll();
+}
+
+$('thumb').onclick = () => document.body.classList.add('view-listing');
+$('toChat').onclick = () => document.body.classList.remove('view-listing');
+start();
+</script>
+</body>
+</html>

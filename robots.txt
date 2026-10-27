@@ -1,5 +1,6 @@
 User-agent: *
 Disallow: /larpdle/api/
+Disallow: /lowballdle/api/
 
 User-agent: GPTBot
 User-agent: ClaudeBot
