@@ -9,6 +9,11 @@ dinotimbs.com {
 		reverse_proxy 127.0.0.1:3001
 	}
 
+	redir /lowballdle /lowballdle/ 308
+	handle_path /lowballdle/* {
+		reverse_proxy 127.0.0.1:3002
+	}
+
 	handle {
 		root * /srv/dinotimbs
 		file_server {

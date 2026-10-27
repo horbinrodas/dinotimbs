@@ -1,0 +1,18 @@
+[Unit]
+Description=Lowballdle
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=deploy
+WorkingDirectory=/srv/dinotimbs/lowballdle
+Environment=PORT=3002 HOST=127.0.0.1 DB=/var/lib/lowballdle/lowballdle.db
+# ADMIN_PATH and ADMIN_PASSWORD live here, outside git
+EnvironmentFile=/etc/lowballdle.env
+StateDirectory=lowballdle
+ExecStart=/usr/bin/node --no-warnings server.js
+Restart=always
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

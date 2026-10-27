@@ -13,12 +13,8 @@
   <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body>
-  <nav class="games" aria-labelledby="gamesTitle">
+  <nav class="games" aria-label="Dinotimbs games">
     <div class="lcd">
-      <div class="lcd-head">
-        <h1 id="gamesTitle">DINOTIMBS</h1>
-        <span>GAMES</span>
-      </div>
       <ol>
         <li>
           <a href="/larpdle/">
@@ -29,6 +25,11 @@
         </li>
       </ol>
     </div>
+    <a class="fb" href="/lowballdle/">
+      <span class="fb-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M3.5 9 5 4h14l1.5 5M4 9h16v2a2.5 2.5 0 0 1-5 0 2.5 2.5 0 0 1-5 0 2.5 2.5 0 0 1-5 0zM5 13v7h14v-7M10 20v-5h4v5" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
+      <span class="fb-text"><b>Lowballdle</b><small>How low can you ball</small></span>
+      <span class="fb-btn">Make offer</span>
+    </a>
   </nav>
   <div class="scroller">
     <div class="scroller-content">
@@ -55,12 +56,21 @@
     @font-face { font-family: 'DSEG7'; src: url(larpdle/fonts/DSEG7Classic-Bold.woff2) format('woff2'); font-display: swap; }
     @font-face { font-family: 'Inter'; src: url(larpdle/fonts/inter-latin-700-normal.woff2) format('woff2'); font-weight: 700; font-display: swap; }
     :root { --ink: #1f2719; --lcd: #a3ae8f; }
-    .games { position: fixed; inset: 0; z-index: 1; display: flex; align-items: center; justify-content: center; padding: 16px; pointer-events: none; }
+    .games { position: fixed; inset: 0; z-index: 1; display: flex; flex-direction: column; gap: 14px; align-items: center; justify-content: center; padding: 16px; pointer-events: none; }
+    .games a.fb { pointer-events: auto; width: min(440px, 100%); display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: #fff; color: #050505; text-decoration: none; font-family: system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; box-shadow: 0 30px 70px rgba(0, 0, 0, 0.75); }
+    .games a.fb:hover { background: #f2f2f2; color: #050505; }
+    .games a.fb:focus-visible { background: #fff; color: #050505; outline: 3px solid #0866ff; outline-offset: 3px; }
+    .fb-icon { flex: none; width: 44px; height: 44px; border-radius: 50%; background: #0866ff; display: grid; place-items: center; }
+    .fb-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .fb-text b { font-size: 24px; }
+    .fb-text small { font-size: 13px; color: #65676b; }
+    .fb-btn { flex: none; padding: 8px 14px; border-radius: 6px; background: #0866ff; color: #fff; font-size: 15px; font-weight: 600; }
+    .games a.fb:hover .fb-btn { background: #0759e0; }
     .games .lcd { pointer-events: auto; width: min(440px, 100%); padding: 12px; border-radius: 14px; background: #0f1317; box-shadow: 0 30px 70px rgba(0, 0, 0, 0.75); }
     .lcd-head, .games ol { background: var(--lcd); color: var(--ink); }
     .lcd-head { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-radius: 6px 6px 0 0; border-bottom: 2px solid var(--ink); font-family: Inter, sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.12em; }
     .lcd-head h1 { margin: 0; font-family: Doto, monospace; font-weight: 900; font-size: 24px; letter-spacing: 0.04em; -webkit-text-stroke: 0.4px currentColor; }
-    .games ol { list-style: none; margin: 0; padding: 0; border-radius: 0 0 6px 6px; overflow: hidden; background-image: radial-gradient(circle, rgba(31, 39, 25, 0.1) 1px, transparent 1.3px); background-size: 5px 5px; }
+    .games ol { list-style: none; margin: 0; padding: 0; border-radius: 6px; overflow: hidden; background-image: radial-gradient(circle, rgba(31, 39, 25, 0.1) 1px, transparent 1.3px); background-size: 5px 5px; }
     .games li + li { border-top: 2px solid var(--ink); }
     .games a { display: flex; align-items: center; gap: 14px; min-height: 64px; padding: 12px 14px; color: var(--ink); text-decoration: none; }
     .games a:hover, .games a:focus-visible { background: var(--ink); color: var(--lcd); outline: none; }
